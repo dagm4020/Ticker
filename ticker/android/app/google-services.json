@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "122897974195",
+    "project_id": "ticker-2779f",
+    "storage_bucket": "ticker-2779f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:122897974195:android:6a105db429741188f641c6",
+        "android_client_info": {
+          "package_name": "com.example.ticker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDfqllloetnDikxtksH8z5bEPURAWWMQbE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
