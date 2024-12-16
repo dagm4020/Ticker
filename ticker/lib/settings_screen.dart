@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:workmanager/workmanager.dart';
+import 'settings_accounts.dart';
+import 'settings_notifications.dart';
+import 'settings_data.dart';
+import 'settings_privacy.dart';
 
 class SettingsScreen extends StatefulWidget {
   @override
@@ -15,19 +20,37 @@ class _SettingsScreenState extends State<SettingsScreen> {
     setState(() {
       _isLoggingOut = true;
     });
+    print('🔒 Logout started. Showing "Logging out..."');
 
-    await Future.delayed(Duration(milliseconds: 1500));
+    try {
+      await Future.delayed(Duration(milliseconds: 1500));
+      print('⏱️ Delay completed. Proceeding to sign out.');
 
-    await _auth.signOut();
-    Navigator.pushReplacementNamed(context, '/login');
+      await Workmanager().cancelAll();
+      print('🗑️ All scheduled notifications canceled.');
+
+      await _auth.signOut();
+      print('🔓 User signed out.');
+    } catch (e) {
+      print('Error during logout: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('An error occurred during logout. Please try again.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    } finally {
+      setState(() {
+        _isLoggingOut = false;
+      });
+      print('🔒 Logout process completed. _isLoggingOut set to false.');
+    }
   }
 
-  void _navigateToSubPage(String title) {
+  void _navigateToPage(Widget page) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => SubSettingsPage(title: title),
-      ),
+      MaterialPageRoute(builder: (context) => page),
     );
   }
 
@@ -52,7 +75,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: TextStyle(color: Colors.white),
               ),
               trailing: Icon(Icons.arrow_forward_ios, color: Colors.white),
-              onTap: () => _navigateToSubPage('Accounts'),
+              onTap: () => _navigateToPage(SettingsAccounts()),
             ),
             Divider(color: Colors.white54),
             ListTile(
@@ -62,7 +85,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: TextStyle(color: Colors.white),
               ),
               trailing: Icon(Icons.arrow_forward_ios, color: Colors.white),
-              onTap: () => _navigateToSubPage('Notifications'),
+              onTap: () => _navigateToPage(SettingsNotifications()),
             ),
             Divider(color: Colors.white54),
             ListTile(
@@ -72,7 +95,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: TextStyle(color: Colors.white),
               ),
               trailing: Icon(Icons.arrow_forward_ios, color: Colors.white),
-              onTap: () => _navigateToSubPage('Data'),
+              onTap: () => _navigateToPage(SettingsData()),
             ),
             Divider(color: Colors.white54),
             ListTile(
@@ -82,7 +105,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 style: TextStyle(color: Colors.white),
               ),
               trailing: Icon(Icons.arrow_forward_ios, color: Colors.white),
-              onTap: () => _navigateToSubPage('Privacy'),
+              onTap: () => _navigateToPage(SettingsPrivacy()),
             ),
             Spacer(),
             GestureDetector(
@@ -97,46 +120,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class SubSettingsPage extends StatelessWidget {
-  final String title;
-
-  SubSettingsPage({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          title,
-          style: TextStyle(
-            color: Colors.white,
-          ),
-        ),
-        backgroundColor: Colors.deepPurple.shade800,
-        iconTheme: IconThemeData(color: Colors.white),
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.black, Colors.deepPurple.shade900],
-            begin: Alignment.bottomLeft,
-            end: Alignment.topRight,
-          ),
-        ),
-        child: Center(
-          child: Text(
-            '$title Page',
-            style: TextStyle(
-              fontSize: 24,
-              color: Colors.white,
-            ),
-          ),
         ),
       ),
     );

@@ -105,7 +105,8 @@ class _RegistrationPageState extends State<RegistrationPage> {
         );
 
         await Future.delayed(Duration(seconds: 2));
-        Navigator.pushReplacementNamed(context, '/login');
+
+        Navigator.pushReplacementNamed(context, '/auth_wrapper');
       } on FirebaseAuthException catch (e) {
         _handleFirebaseError(e);
       } catch (e) {

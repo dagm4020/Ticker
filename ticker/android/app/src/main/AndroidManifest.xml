@@ -1,8 +1,37 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <application
         android:label="ticker"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <!--The service line below is an attempt to setup push notification-->
+        <service
+            android:name=".MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+
+        <!-- WorkManager Service -->
+        <service
+            android:name="be.tramckrijte.workmanager.WorkmanagerPlugin$WorkmanagerBackgroundService"
+            android:exported="false"
+            android:permission="android.permission.BIND_JOB_SERVICE"/>
+
+        <!-- WorkManager BroadcastReceiver -->
+        <receiver
+            android:name="be.tramckrijte.workmanager.WorkmanagerPlugin$BroadcastReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="be.tramckrijte.workmanager.ACTION_INITIALIZE"/>
+                <action android:name="be.tramckrijte.workmanager.ACTION_EXECUTE"/>
+            </intent-filter>
+        </receiver>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

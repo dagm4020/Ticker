@@ -38,10 +38,20 @@ dependencies:
   firebase_core: ^3.8.0
   firebase_auth: ^5.3.3
   cloud_firestore: ^5.5.0
-  animations: ^2.0.1 # Add this line
+  animations: ^2.0.1 
   http: ^1.2.2
   fl_chart: ^0.69.2 
   flutter_dotenv: ^5.2.1
+  cached_network_image: ^3.2.3
+  url_launcher: ^6.1.7
+  webview_flutter: ^4.10.0
+  shared_preferences: ^2.0.15
+  firebase_messaging: ^15.1.6
+  flutter_local_notifications: ^18.0.1
+  workmanager: ^0.5.1
+  permission_handler: ^11.3.1
+  syncfusion_flutter_charts: ^28.1.33
+  flutter_spinkit: ^5.2.1
 
 dev_dependencies:
   flutter_test:

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'registration_page.dart';
+import 'package:workmanager/workmanager.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -73,8 +74,6 @@ class _LoginPageState extends State<LoginPage> {
           email: email!,
           password: password,
         );
-
-        Navigator.pushReplacementNamed(context, '/home');
       } on FirebaseAuthException catch (e) {
         _handleFirebaseError(e);
       } catch (e) {

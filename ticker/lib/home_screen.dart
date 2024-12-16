@@ -1,10 +1,15 @@
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'watchlist_screen.dart';
 import 'newsfeed_screen.dart';
 import 'settings_screen.dart';
-import 'results_screen.dart'; import 'dart:convert'; import 'package:http/http.dart' as http; import 'package:flutter_dotenv/flutter_dotenv.dart'; import 'dart:async'; 
+import 'results_screen.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'dart:async';
+import 'widgets/bottom_nav_bar.dart';
+
 class HomeScreen extends StatefulWidget {
   @override
   _HomeScreenState createState() => _HomeScreenState();
@@ -15,27 +20,31 @@ class _HomeScreenState extends State<HomeScreen> {
 
   int _selectedIndex = 0;
 
-    String _apiKey = '';
+  String _apiKey = '';
 
-    TextEditingController _searchController = TextEditingController();
+  TextEditingController _searchController = TextEditingController();
   List<dynamic> _searchResults = [];
   bool _isSearching = false;
-  bool _hasSearched = false; 
-    Timer? _debounce;
+  bool _hasSearched = false;
+  Timer? _debounce;
 
   @override
   void initState() {
     super.initState();
     print('initState called');
 
-        _apiKey = dotenv.env['FINNHUB_API_KEY'] ?? '';
+    if (!dotenv.isInitialized) {
+      print('❌ dotenv is not initialized!');
+    }
+
+    _apiKey = dotenv.env['ALPHA_VANTAGE_API_KEY'] ?? '';
     if (_apiKey.isEmpty) {
-      print('❌ Error: FINNHUB_API_KEY not found in .env file.');
+      print('❌ Error: ALPHA_VANTAGE_API_KEY not found in .env file.');
     } else {
       print('✅ API Key loaded successfully: $_apiKey');
     }
 
-        _searchController.addListener(_onSearchChanged);
+    _searchController.addListener(_onSearchChanged);
   }
 
   @override
@@ -48,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
-            if (index != 0) {
+      if (index != 0) {
         _searchController.clear();
         _searchResults = [];
         _isSearching = false;
@@ -57,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-    void _onSearchChanged() {
+  void _onSearchChanged() {
     if (_searchController.text.isEmpty) {
       setState(() {
         _searchResults = [];
@@ -73,8 +82,8 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-    Future<void> _performSearch(String query) async {
-    print('Search initiated with query: "$query"'); 
+  Future<void> _performSearch(String query) async {
+    print('Search initiated with query: "$query"');
     if (_apiKey.isEmpty) {
       print('❌ API Key is missing.');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -98,21 +107,23 @@ class _HomeScreenState extends State<HomeScreen> {
 
     setState(() {
       _isSearching = true;
-      _hasSearched = true;     });
+      _hasSearched = true;
+    });
 
     final url = Uri.parse(
-        'https://finnhub.io/api/v1/search?q=$query&token=$_apiKey');
+        'https://www.alphavantage.co/query?function=SYMBOL_SEARCH&keywords=$query&apikey=$_apiKey');
+
     print('📡 Sending GET request to: $url');
 
     try {
       final response = await http.get(url);
-      print('🔄 Received response with status code: ${response.statusCode}'); 
+      print('🔄 Received response with status code: ${response.statusCode}');
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        print('✅ Response data: ${data['result']}'); 
-        if (data['result'] != null && data['result'] is List) {
+        print('✅ Response data: ${data['bestMatches']}');
+        if (data['bestMatches'] != null && data['bestMatches'] is List) {
           setState(() {
-            _searchResults = data['result'];
+            _searchResults = data['bestMatches'];
             _isSearching = false;
           });
         } else {
@@ -168,7 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-    void _navigateToResults(String symbol) {
+  void _navigateToResults(String symbol) {
     if (_apiKey.isEmpty) {
       print('❌ Cannot navigate: API Key is missing.');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -180,18 +191,17 @@ class _HomeScreenState extends State<HomeScreen> {
       return;
     }
 
-    print('Navigating to ResultsScreen for symbol: $symbol'); 
-    Navigator.push(
+    print('Navigating to ResultsScreen for symbol: $symbol');
+    Navigator.pushNamed(
       context,
-      MaterialPageRoute(
-        builder: (context) => ResultsScreen(symbol: symbol, apiKey: _apiKey),
-      ),
+      '/results',
+      arguments: {'symbol': symbol, 'apiKey': _apiKey},
     );
   }
 
   @override
   Widget build(BuildContext context) {
-        Widget currentScreen;
+    Widget currentScreen;
     switch (_selectedIndex) {
       case 0:
         currentScreen = HomeContent(
@@ -224,18 +234,20 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     return Scaffold(
-      extendBody: true,             body: Container(
+      extendBody: true,
+      body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [Colors.black, Colors.deepPurple.shade900],
-            begin: Alignment.bottomLeft,             end: Alignment.topRight,           ),
+            begin: Alignment.bottomLeft,
+            end: Alignment.topRight,
+          ),
         ),
         child: SafeArea(
           child: Column(
             children: [
-                            Container(
-                padding:
-                    EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 color: Colors.transparent,
                 child: Center(
                   child: Text(
@@ -254,53 +266,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ),
               ),
-                            Expanded(
+              Expanded(
                 child: currentScreen,
               ),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: Container(
-        margin: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-        decoration: BoxDecoration(
-          color: Colors.deepPurple.shade800.withOpacity(0.8),           borderRadius: BorderRadius.circular(30),           boxShadow: [
-            BoxShadow(
-              color: Colors.black26,
-              blurRadius: 10,
-            ),
-          ],
-        ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(30),
-          child: BottomNavigationBar(
-            backgroundColor: Colors.transparent,             items: const <BottomNavigationBarItem>[
-              BottomNavigationBarItem(
-                icon: Icon(Icons.dashboard),
-                label: 'Dashboard',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.remove_red_eye),
-                label: 'Watchlist',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.feed),
-                label: 'Newsfeed',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(Icons.settings),
-                label: 'Settings',
-              ),
-            ],
-            currentIndex: _selectedIndex,
-            selectedItemColor: Colors.white,
-            unselectedItemColor: Colors.white70,
-            onTap: _onItemTapped,
-            type: BottomNavigationBarType.fixed,
-            showSelectedLabels: true,
-            showUnselectedLabels: true,
-            iconSize: 24,           ),
-        ),
+      bottomNavigationBar: BottomNavBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
       ),
     );
   }
@@ -310,14 +285,16 @@ class HomeContent extends StatelessWidget {
   final TextEditingController searchController;
   final List<dynamic> searchResults;
   final bool isSearching;
-  final bool hasSearched;   final Function(String) onSearch;
+  final bool hasSearched;
+  final Function(String) onSearch;
   final Function(String) onStockSelected;
 
   HomeContent({
     required this.searchController,
     required this.searchResults,
     required this.isSearching,
-    required this.hasSearched,     required this.onSearch,
+    required this.hasSearched,
+    required this.onSearch,
     required this.onStockSelected,
   });
 
@@ -331,9 +308,9 @@ class HomeContent extends StatelessWidget {
 
     return Column(
       children: [
-                TextField(
+        TextField(
           controller: searchController,
-          onChanged: onSearch,
+          onChanged: (value) => onSearch(value),
           decoration: InputDecoration(
             hintText: 'Search for stocks...',
             prefixIcon: Icon(Icons.search),
@@ -369,27 +346,27 @@ class HomeContent extends StatelessWidget {
                           itemBuilder: (context, index) {
                             final stock = searchResults[index];
                             print(
-                                'Rendering stock: ${stock['symbol']} - ${stock['description']}');                             return Column(
+                                'Rendering stock: ${stock['1. symbol']} - ${stock['2. name']}');
+                            return Column(
                               children: [
                                 ListTile(
                                   leading: Icon(Icons.show_chart,
                                       color: Colors.white),
                                   title: Text(
-                                    stock['description'] ?? 'No Description',
+                                    stock['2. name'] ?? 'No Description',
                                     style: TextStyle(
                                         color: Colors.white,
                                         fontWeight: FontWeight.bold),
                                   ),
                                   subtitle: Text(
-                                    stock['symbol'] ?? '',
-                                    style:
-                                        TextStyle(color: Colors.white70),
+                                    stock['1. symbol'] ?? '',
+                                    style: TextStyle(color: Colors.white70),
                                   ),
                                   trailing: Icon(Icons.arrow_forward_ios,
                                       color: Colors.white70),
                                   onTap: () {
-                                    if (stock['symbol'] != null) {
-                                      onStockSelected(stock['symbol']);
+                                    if (stock['1. symbol'] != null) {
+                                      onStockSelected(stock['1. symbol']);
                                     }
                                   },
                                 ),
